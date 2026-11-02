@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Store Management / POS System</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+    <h1 class="text-xl font-bold text-gray-800">Restaurant POS System</h1>
+    <div class="flex items-center gap-4">
+      <input type="text" id="customer-input" placeholder="Table No. or Customer Name" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Catalog Section (2 Columns on Large Screens) -->
+    <section class="lg:col-span-2 flex flex-col gap-4">
+      <!-- Search and Filter Bar -->
+      <div class="bg-white p-4 rounded-lg shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <input type="text" id="search-input" placeholder="Search menu..." class="w-full sm:w-72 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <select id="category-select" class="w-full sm:w-48 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <option value="all">All Categories</option>
+          <option value="Main">Main</option>
+          <option value="Drink">Drink</option>
+          <option value="Dessert">Dessert</option>
+        </select>
+      </div>
+
+      <!-- Catalog Grid -->
+      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto max-h-[calc(100vh-240px)] p-1">
+        <!-- Dynamic Catalog Items -->
+      </div>
+    </section>
+
+    <!-- Cart / Order Section (1 Column) -->
+    <section class="bg-white rounded-lg shadow-sm p-4 flex flex-col justify-between max-h-[calc(100vh-120px)]">
+      <div class="flex flex-col h-full overflow-hidden">
+        <h2 class="text-lg font-semibold border-b pb-2 mb-3">Current Order</h2>
+        
+        <!-- Cart List Container -->
+        <div id="cart-list" class="flex-1 overflow-y-auto divide-y divide-gray-100 pr-1">
+          <!-- Dynamic Cart Items -->
+        </div>
+
+        <!-- Financial Breakdown -->
+        <div class="border-t pt-4 mt-4 space-y-2 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Subtotal</span>
+            <span><span id="subtotal-val">0.00</span> THB</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Discount</span>
+            <span>-<span id="discount-val">0.00</span> THB</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Service Charge (10%)</span>
+            <span><span id="tax-val">0.00</span> THB</span>
+          </div>
+          <div class="flex justify-between text-base font-bold border-t pt-2 mt-2">
+            <span>Grand Total</span>
+            <span class="text-indigo-600"><span id="grand-total-val">0.00</span> THB</span>
+          </div>
+        </div>
+
+        <!-- Checkout Button -->
+        <button id="checkout-btn" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded transition-colors duration-150 cursor-pointer">
+          Confirm Order
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Application Logic -->
+  <script>
+    const catalogData = [
+      { id: 1, name: "Iced Matcha Latte", category: "Drink", price: 60 },
+      { id: 2, name: "Thai Milk Tea", category: "Drink", price: 70 },
+      { id: 3, name: "Mango Sticky Rice", category: "Dessert", price: 90 },
+      { id: 4, name: "Chocolate Lava Cake", category: "Dessert", price: 110 },
+      { id: 5, name: "Pad Kra Pao Beef", category: "Main", price: 120 },
+      { id: 6, name: "Tom Yum Goong", category: "Main", price: 180 }
+    ];
+
+    let cart = [];
+    let customerInfo = "";
+
+    // DOM Elements
+    const searchInput = document.getElementById('search-input');
+    const categorySelect = document.getElementById('category-select');
+    const catalogGrid = document.getElementById('catalog-grid');
+    const cartList = document.getElementById('cart-list');
+    const subtotalVal = document.getElementById('subtotal-val');
+    const discountVal = document.getElementById('discount-val');
+    const taxVal = document.getElementById('tax-val');
+    const grandTotalVal = document.getElementById('grand-total-val');
+    const customerInput = document.getElementById('customer-input');
+    const checkoutBtn = document.getElementById('checkout-btn');
+
+    // Initialize App
+    function init() {
+      loadState();
+      renderCatalog(catalogData);
+      renderCart();
+      setupEventListeners();
+    }
+
+    // Render Catalog Items
+    function renderCatalog(items) {
+      catalogGrid.innerHTML = '';
+      if (items.length === 0) {
+        catalogGrid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-8">No menu items found</p>';
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'catalog-item bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col justify-between hover:shadow-md transition-shadow';
+        card.innerHTML = `
+          <div>
+            <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded">${item.category}</span>
+            <h3 class="font-medium text-gray-800 mt-2">${item.name}</h3>
+          </div>
+          <div class="flex justify-between items-center mt-4">
+            <span class="font-bold text-gray-700">${item.price.toFixed(2)} THB</span>
+            <button data-id="${item.id}" class="add-btn bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded transition-colors cursor-pointer">Add</button>
+          </div>
+        `;
+        catalogGrid.appendChild(card);
+      });
+    }
+
+    // Filter & Search Logic
+    function filterCatalog() {
+      const keyword = searchInput.value.toLowerCase().trim();
+      const selectedCategory = categorySelect.value;
+
+      const filtered = catalogData.filter(item => {
+        const matchesKeyword = item.name.toLowerCase().includes(keyword);
+        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+        return matchesKeyword && matchesCategory;
+      });
+
+      renderCatalog(filtered);
+    }
+
+    // Cart Mutations
+    function addToCart(itemId) {
+      const item = catalogData.find(i => i.id === itemId);
+      if (!item) return;
+
+      const existing = cart.find(i => i.id === itemId);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...item, qty: 1 });
+      }
+
+      saveState();
+      renderCart();
+    }
+
+    function updateQty(itemId, change) {
+      const index = cart.findIndex(i => i.id === itemId);
+      if (index === -1) return;
+
+      cart[index].qty += change;
+      if (cart[index].qty <= 0) {
+        cart.splice(index, 1);
+      }
+
+      saveState();
+      renderCart();
+    }
+
+    function removeFromCart(itemId) {
+      cart = cart.filter(i => i.id !== itemId);
+      saveState();
+      renderCart();
+    }
+
+    // Render Cart Items
+    function renderCart() {
+      cartList.innerHTML = '';
+      if (cart.length === 0) {
+        cartList.innerHTML = '<p class="text-center text-gray-400 py-6 text-sm">Your order list is empty</p>';
+        updateFinancials(0, 0, 0, 0);
+        return;
+      }
+
+      cart.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'py-3 flex flex-col gap-2';
+        row.innerHTML = `
+          <div class="flex justify-between items-start">
+            <span class="text-sm font-medium text-gray-800">${item.name}</span>
+            <span class="text-sm font-semibold text-gray-700">${(item.price * item.qty).toFixed(2)}</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-gray-500">${item.price.toFixed(2)} x ${item.qty}</span>
+            <div class="flex items-center gap-1.5">
+              <button data-id="${item.id}" class="qty-dec w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded flex items-center justify-center font-bold cursor-pointer">-</button>
+              <span class="w-6 text-center font-medium">${item.qty}</span>
+              <button data-id="${item.id}" class="qty-inc w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded flex items-center justify-center font-bold cursor-pointer">+</button>
+              <button data-id="${item.id}" class="remove-btn text-red-500 hover:text-red-700 ml-2 font-medium cursor-pointer">Remove</button>
+            </div>
+          </div>
+        `;
+        cartList.appendChild(row);
+      });
+
+      calculateFinancials();
+    }
+
+    // Financial Formula Calculations
+    function calculateFinancials() {
+      let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      let discount = subtotal >= 300 ? 40.00 : 0.00;
+      let tax = (subtotal - discount) > 0 ? (subtotal - discount) * 0.10 : 0.00;
+      let grandTotal = (subtotal - discount) + tax;
+
+      updateFinancials(subtotal, discount, tax, grandTotal);
+    }
+
+    function updateFinancials(subtotal, discount, tax, grandTotal) {
+      subtotalVal.textContent = subtotal.toFixed(2);
+      discountVal.textContent = discount.toFixed(2);
+      taxVal.textContent = tax.toFixed(2);
+      grandTotalVal.textContent = grandTotal.toFixed(2);
+    }
+
+    // Persistence with localStorage
+    function saveState() {
+      const state = {
+        cart: cart,
+        customer: customerInput.value
+      };
+      localStorage.setItem('app_cart_state', JSON.stringify(state));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem('app_cart_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          cart = parsed.cart || [];
+          customerInput.value = parsed.customer || "";
+        } catch (e) {
+          console.error("Failed to load state", e);
+        }
+      }
+    }
+
+    // Event Listeners Setup
+    function setupEventListeners() {
+      searchInput.addEventListener('input', filterCatalog);
+      categorySelect.addEventListener('change', filterCatalog);
+
+      customerInput.addEventListener('input', () => {
+        saveState();
+      });
+
+      catalogGrid.addEventListener('click', (e) => {
+        if (e.target.classList.contains('add-btn')) {
+          const id = parseInt(e.target.getAttribute('data-id'));
+          addToCart(id);
+        }
+      });
+
+      cartList.addEventListener('click', (e) => {
+        const id = parseInt(e.target.getAttribute('data-id'));
+        if (e.target.classList.contains('qty-inc')) {
+          updateQty(id, 1);
+        } else if (e.target.classList.contains('qty-dec')) {
+          updateQty(id, -1);
+        } else if (e.target.classList.contains('remove-btn')) {
+          removeFromCart(id);
+        }
+      });
+
+      checkoutBtn.addEventListener('click', () => {
+        const customerVal = customerInput.value.trim();
+        if (cart.length === 0 || customerVal === "") {
+          alert("Please check your order items and ensure table number or customer name is entered.");
+          return;
+        }
+
+        const orderData = {
+          customer: customerVal,
+          items: cart,
+          subtotal: subtotalVal.textContent,
+          discount: discountVal.textContent,
+          tax: taxVal.textContent,
+          grandTotal: grandTotalVal.textContent,
+          timestamp: new Date().toISOString()
+        };
+
+        localStorage.setItem('app_last_order', JSON.stringify(orderData));
+        alert("Order successfully confirmed and sent to kitchen!");
+        
+        // Reset Cart and Storage
+        cart = [];
+        customerInput.value = "";
+        localStorage.removeItem('app_cart_state');
+        renderCart();
+      });
+    }
+
+    // Run initialization on load
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

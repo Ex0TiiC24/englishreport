@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AiPASS vs Native Gemini - Side-by-Side Comparison Suite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Navigation & Control Bar -->
+  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-2.5">
+    <div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight text-white">AiPASS vs Native Gemini</h1>
+            <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wider rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase">Comparison Suite</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">Side-by-side interactive evaluation across 3 web application domains</p>
+        </div>
+      </div>
+
+      <!-- Domain Navigation Pills -->
+      <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 shadow-inner">
+        <button id="tab-ecom" onclick="switchDomain('ecom')" class="domain-tab flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-white bg-indigo-600 shadow-sm">
+          <span>🛒</span>
+          <span>E-Commerce</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-700/60 font-mono text-indigo-200">400-3000 THB</span>
+        </button>
+        <button id="tab-book" onclick="switchDomain('book')" class="domain-tab flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-900">
+          <span>📚</span>
+          <span>Book Store</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 font-mono text-slate-300">180-550 THB</span>
+        </button>
+        <button id="tab-food" onclick="switchDomain('food')" class="domain-tab flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-slate-200 hover:bg-slate-900">
+          <span>🍜</span>
+          <span>Food POS</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 font-mono text-slate-300">60-180 THB</span>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleModal('modal-rubric')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition shadow-sm">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>20-Point Rubric</span>
+        </button>
+
+        <button onclick="toggleModal('modal-spec')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition shadow-sm">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Prompt Specs</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Comparison Arena: Side-by-Side Dual Viewport -->
+  <main class="flex-1 max-w-[1920px] w-full mx-auto p-3 grid grid-cols-1 lg:grid-cols-2 gap-3 min-h-[calc(100vh-65px)]">
+
+    <!-- LEFT PANE: AiPASS Platform -->
+    <section class="flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      
+      <!-- Pane Header / Telemetry -->
+      <div class="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="h-6 w-6 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center">
+            <span class="text-xs font-black text-indigo-400">AI</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-white tracking-tight">AiPASS Framework</span>
+              <span id="aipass-file-badge" class="font-mono text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">aipass/ecom.html</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Stats -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md text-[11px] font-semibold text-emerald-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="aipass-score">20/20 (100%)</span>
+          </div>
+          <div class="hidden sm:flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md text-[11px] font-mono text-slate-300">
+            <span>LOC:</span>
+            <span id="aipass-loc" class="font-semibold text-indigo-300">319</span>
+          </div>
+          <div class="hidden md:flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md text-[11px] font-mono text-slate-300">
+            <span>Chars:</span>
+            <span id="aipass-chars" class="font-semibold text-indigo-300">15.5k</span>
+          </div>
+        </div>
+
+        <!-- Pane Actions -->
+        <div class="flex items-center gap-1.5">
+          <button title="Reload Pane" onclick="reloadPane('iframe-aipass')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <a id="aipass-newtab-btn" href="aipass/ecom.html" target="_blank" title="Open in New Tab" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition inline-flex items-center">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Live Interactive Iframe -->
+      <div class="flex-1 w-full bg-slate-100 relative min-h-[550px]">
+        <iframe id="iframe-aipass" src="aipass/ecom.html" class="absolute inset-0 w-full h-full border-0 bg-white" title="AiPASS Application View"></iframe>
+      </div>
+    </section>
+
+    <!-- RIGHT PANE: Native Gemini Platform -->
+    <section class="flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      
+      <!-- Pane Header / Telemetry -->
+      <div class="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="h-6 w-6 rounded-lg bg-teal-500/20 border border-teal-500/40 flex items-center justify-center">
+            <span class="text-xs font-black text-teal-400">G</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-white tracking-tight">Native Gemini</span>
+              <span id="google-file-badge" class="font-mono text-[10px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">google/ecom.html</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Telemetry Stats -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md text-[11px] font-semibold text-emerald-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="google-score">20/20 (100%)</span>
+          </div>
+          <div class="hidden sm:flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md text-[11px] font-mono text-slate-300">
+            <span>LOC:</span>
+            <span id="google-loc" class="font-semibold text-teal-300">266</span>
+          </div>
+          <div class="hidden md:flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2 py-0.5 rounded-md text-[11px] font-mono text-slate-300">
+            <span>Chars:</span>
+            <span id="google-chars" class="font-semibold text-teal-300">12.8k</span>
+          </div>
+        </div>
+
+        <!-- Pane Actions -->
+        <div class="flex items-center gap-1.5">
+          <button title="Reload Pane" onclick="reloadPane('iframe-google')" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <a id="google-newtab-btn" href="google/ecom.html" target="_blank" title="Open in New Tab" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition inline-flex items-center">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Live Interactive Iframe -->
+      <div class="flex-1 w-full bg-slate-100 relative min-h-[550px]">
+        <iframe id="iframe-google" src="google/ecom.html" class="absolute inset-0 w-full h-full border-0 bg-white" title="Native Gemini Application View"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: 20-Point Verification Rubric & Score Breakdown -->
+  <div id="modal-rubric" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📊 20-Point Automated & Manual Verification Rubric</span>
+          </h2>
+          <p class="text-xs text-slate-400">Playwright headless evaluation checklist (5 modules × 4 binary checkpoints = 100%)</p>
+        </div>
+        <button onclick="toggleModal('modal-rubric')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-6 custom-scrollbar text-sm">
+        
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <div class="text-xs text-slate-400">AiPASS Avg Score</div>
+            <div class="text-xl font-bold text-indigo-400 mt-1">20.0 / 20 (100%)</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">3 / 3 domains validated</div>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <div class="text-xs text-slate-400">Native Gemini Avg Score</div>
+            <div class="text-xl font-bold text-teal-400 mt-1">20.0 / 20 (100%)</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">3 / 3 domains validated</div>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 col-span-2 sm:col-span-1">
+            <div class="text-xs text-slate-400">Runtime Errors</div>
+            <div class="text-xl font-bold text-emerald-400 mt-1">0 console errors</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Clean execution across all</div>
+          </div>
+        </div>
+
+        <!-- Detailed Checklist Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-2.5 px-3">Code</th>
+                <th class="py-2.5 px-3">Module</th>
+                <th class="py-2.5 px-3">Checkpoint Specification</th>
+                <th class="py-2.5 px-2 text-center">Weight</th>
+                <th class="py-2.5 px-3 text-center">AiPASS (E/B/F)</th>
+                <th class="py-2.5 px-3 text-center">Native (E/B/F)</th>
+              </tr>
+            </thead>
+            <tbody id="rubric-table-body" class="divide-y divide-slate-800 text-slate-300">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-slate-950/80 border-t border-slate-800 flex justify-end">
+        <button onclick="toggleModal('modal-rubric')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition">
+          Close Rubric
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Prompt Specifications & Financial Logic -->
+  <div id="modal-spec" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📑 Prompt Specifications & Business Rules</span>
+          </h2>
+          <p class="text-xs text-slate-400">Rules applied to both AiPASS and Native Gemini implementations</p>
+        </div>
+        <button onclick="toggleModal('modal-spec')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 custom-scrollbar text-xs text-slate-300">
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+          <h3 class="text-sm font-bold text-indigo-400 flex items-center gap-2">
+            <span>🛒 1. E-Commerce Store</span>
+          </h3>
+          <ul class="list-disc list-inside space-y-1 text-slate-400">
+            <li><strong class="text-slate-200">Catalog:</strong> 6 items in Gadgets, Accessories, Audio (400, 600, 1200, 1500, 2200, 3000 THB).</li>
+            <li><strong class="text-slate-200">Discount:</strong> If Subtotal &ge; 2,000 THB &rarr; 15% discount (Subtotal * 0.15), else 0.00.</li>
+            <li><strong class="text-slate-200">Tax / VAT:</strong> 7% VAT computed on net subtotal: ((Subtotal - Discount) * 0.07).</li>
+            <li><strong class="text-slate-200">Grand Total:</strong> (Subtotal - Discount) + Tax.</li>
+          </ul>
+        </div>
+
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+          <h3 class="text-sm font-bold text-teal-400 flex items-center gap-2">
+            <span>📚 2. Book Store System</span>
+          </h3>
+          <ul class="list-disc list-inside space-y-1 text-slate-400">
+            <li><strong class="text-slate-200">Catalog:</strong> 6 books in Fiction, Tech, Business (180, 220, 280, 320, 450, 550 THB).</li>
+            <li><strong class="text-slate-200">Discount:</strong> If Total Book Quantity &ge; 3 &rarr; flat 80.00 THB discount, else 0.00.</li>
+            <li><strong class="text-slate-200">Shipping Fee (in #tax-val):</strong> If Cart &ge; 1 book &rarr; flat 50.00 THB, else 0.00.</li>
+            <li><strong class="text-slate-200">Grand Total:</strong> max(0, Subtotal - Discount) + Shipping Fee.</li>
+          </ul>
+        </div>
+
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+          <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">
+            <span>🍜 3. Food Store / POS System</span>
+          </h3>
+          <ul class="list-disc list-inside space-y-1 text-slate-400">
+            <li><strong class="text-slate-200">Catalog:</strong> 6 dishes in Main, Drink, Dessert (60, 70, 90, 110, 120, 180 THB).</li>
+            <li><strong class="text-slate-200">Discount:</strong> If Subtotal &ge; 300 THB &rarr; flat 40.00 THB discount, else 0.00.</li>
+            <li><strong class="text-slate-200">Service Charge (in #tax-val):</strong> 10% computed on net subtotal: ((Subtotal - Discount) * 0.10).</li>
+            <li><strong class="text-slate-200">Grand Total:</strong> (Subtotal - Discount) + Service Charge.</li>
+          </ul>
+        </div>
+
+        <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+          <h3 class="text-sm font-bold text-purple-400">💾 Persistence & Validation Standards (Module 5)</h3>
+          <p class="text-slate-400">Both implementations write live cart state to <code class="text-indigo-300">localStorage.getItem("app_cart_state")</code>, persist across page reloads, block order checkout when empty or missing customer name, and commit confirmed orders to <code class="text-indigo-300">localStorage.getItem("app_last_order")</code>.</p>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-slate-950/80 border-t border-slate-800 flex justify-end">
+        <button onclick="toggleModal('modal-spec')" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition">
+          Close Specs
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Embedded Evaluation Data & Script -->
+  <script>
+    // Evaluated test metrics from evaluation_results.csv
+    const EVALUATION_DATA = {
+      ecom: {
+        aipass: { file: "aipass/ecom.html", loc: 319, chars: "15.5k", score: "20/20 (100%)", valid: 1, errors: 0 },
+        google: { file: "google/ecom.html", loc: 266, chars: "12.8k", score: "20/20 (100%)", valid: 1, errors: 0 }
+      },
+      book: {
+        aipass: { file: "aipass/book.html", loc: 288, chars: "13.1k", score: "20/20 (100%)", valid: 1, errors: 0 },
+        google: { file: "google/book.html", loc: 362, chars: "16.7k", score: "20/20 (100%)", valid: 1, errors: 0 }
+      },
+      food: {
+        aipass: { file: "aipass/food.html", loc: 319, chars: "12.4k", score: "20/20 (100%)", valid: 1, errors: 0 },
+        google: { file: "google/food.html", loc: 300, chars: "13.3k", score: "20/20 (100%)", valid: 1, errors: 0 }
+      }
+    };
+
+    const CHECKPOINTS_DATA = [
+      { code: "M1.1", module: "1. Catalog", desc: "#catalog-grid exists in DOM and renders without layout collapse." },
+      { code: "M1.2", module: "1. Catalog", desc: "Exactly 6 .catalog-item cards render on initial page load." },
+      { code: "M1.3", module: "1. Catalog", desc: "Every .catalog-item card contains a clickable .add-btn element." },
+      { code: "M1.4", module: "1. Catalog", desc: "All 6 domain-specific item names and base prices match specification." },
+      { code: "M2.1", module: "2. Filter/Search", desc: "#search-input and #category-select exist in the DOM." },
+      { code: "M2.2", module: "2. Filter/Search", desc: "Typing specific item keyword into #search-input reduces visible cards to 1." },
+      { code: "M2.3", module: "2. Filter/Search", desc: "Selecting specific category in #category-select filters visible cards to exactly 2." },
+      { code: "M2.4", module: "2. Filter/Search", desc: "Resetting search and category restores all 6 .catalog-item cards." },
+      { code: "M3.1", module: "3. Cart State", desc: "Clicking .add-btn on Item 1 and Item 6 adds both items into #cart-list." },
+      { code: "M3.2", module: "3. Cart State", desc: "Clicking .qty-inc on an item increments quantity from 1 to 2." },
+      { code: "M3.3", module: "3. Cart State", desc: "Clicking .qty-dec decrements quantity back from 2 to 1." },
+      { code: "M3.4", module: "3. Cart State", desc: "Clicking .remove-btn removes the targeted item from #cart-list." },
+      { code: "M4.1", module: "4. Financials", desc: "#subtotal-val accurately displays exact sum of (price × qty)." },
+      { code: "M4.2", module: "4. Financials", desc: "#discount-val equals 0.00 below threshold and exact discount above threshold." },
+      { code: "M4.3", module: "4. Financials", desc: "#tax-val accurately computes 7% VAT (ecom), 50 THB shipping (book), 10% Service (food)." },
+      { code: "M4.4", module: "4. Financials", desc: "#grand-total-val equals exact net payable (S - D + T) in both low and high states." },
+      { code: "M5.1", module: "5. Persistence", desc: "Cart mutations write valid JSON to localStorage 'app_cart_state'." },
+      { code: "M5.2", module: "5. Persistence", desc: "Page reload preserves and re-renders cart items and financial totals." },
+      { code: "M5.3", module: "5. Persistence", desc: "Empty #customer-input blocks order creation ('app_last_order' remains null)." },
+      { code: "M5.4", module: "5. Persistence", desc: "Valid #customer-input saves complete order JSON to 'app_last_order'." },
+    ];
+
+    let currentDomain = "ecom";
+
+    function switchDomain(domain) {
+      currentDomain = domain;
+      const data = EVALUATION_DATA[domain];
+
+      // Update tabs style
+      document.querySelectorAll(".domain-tab").forEach(tab => {
+        tab.classList.remove("text-white", "bg-indigo-600", "shadow-sm");
+        tab.classList.add("text-slate-400", "hover:text-slate-200", "hover:bg-slate-900");
+      });
+      const activeTab = document.getElementById(`tab-${domain}`);
+      activeTab.classList.remove("text-slate-400", "hover:text-slate-200", "hover:bg-slate-900");
+      activeTab.classList.add("text-white", "bg-indigo-600", "shadow-sm");
+
+      // Update AiPASS pane
+      const aipassIframe = document.getElementById("iframe-aipass");
+      aipassIframe.src = data.aipass.file;
+      document.getElementById("aipass-file-badge").innerText = data.aipass.file;
+      document.getElementById("aipass-score").innerText = data.aipass.score;
+      document.getElementById("aipass-loc").innerText = data.aipass.loc;
+      document.getElementById("aipass-chars").innerText = data.aipass.chars;
+      document.getElementById("aipass-newtab-btn").href = data.aipass.file;
+
+      // Update Google pane
+      const googleIframe = document.getElementById("iframe-google");
+      googleIframe.src = data.google.file;
+      document.getElementById("google-file-badge").innerText = data.google.file;
+      document.getElementById("google-score").innerText = data.google.score;
+      document.getElementById("google-loc").innerText = data.google.loc;
+      document.getElementById("google-chars").innerText = data.google.chars;
+      document.getElementById("google-newtab-btn").href = data.google.file;
+    }
+
+    function reloadPane(iframeId) {
+      const iframe = document.getElementById(iframeId);
+      if (iframe) {
+        iframe.src = iframe.src;
+      }
+    }
+
+    function toggleModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal.classList.contains("hidden")) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      } else {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+    }
+
+    // Populate rubric table
+    function initRubricTable() {
+      const tbody = document.getElementById("rubric-table-body");
+      tbody.innerHTML = "";
+      CHECKPOINTS_DATA.forEach(cp => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-800/50 transition";
+        tr.innerHTML = `
+          <td class="py-2 px-3 font-mono text-[11px] font-bold text-indigo-400">${cp.code}</td>
+          <td class="py-2 px-3 text-[11px] text-slate-400 font-medium whitespace-nowrap">${cp.module}</td>
+          <td class="py-2 px-3 text-slate-300">${cp.desc}</td>
+          <td class="py-2 px-2 text-center font-mono text-slate-400">5%</td>
+          <td class="py-2 px-3 text-center whitespace-nowrap">
+            <span class="inline-flex items-center gap-1 font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              ✓ [x] / [x] / [x]
+            </span>
+          </td>
+          <td class="py-2 px-3 text-center whitespace-nowrap">
+            <span class="inline-flex items-center gap-1 font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+              ✓ [x] / [x] / [x]
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Close modal on escape
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        document.querySelectorAll("[id^='modal-']").forEach(modal => {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+        });
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initRubricTable();
+    });
+  </script>
+</body>
+</html>
+

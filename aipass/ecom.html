@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบร้านค้าออนไลน์ (E-Commerce Store)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-blue-600 mb-2">Modern E-Commerce Store</h1>
+            <p class="text-gray-600">เลือกซื้อสินค้าที่คุณชื่นชอบ ระบบคำนวณอัตโนมัติและบันทึกข้อมูลให้คุณ</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- ส่วนแสดงสินค้าและตัวกรอง (Catalog & Filter) -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- แผงควบคุมการค้นหาและกรอง -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4">
+                    <div class="flex-1">
+                        <label for="search-input" class="block text-sm font-medium text-gray-700 mb-1">ค้นหาสินค้า</label>
+                        <input type="text" id="search-input" placeholder="พิมพ์ชื่อสินค้า..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div class="sm:w-48">
+                        <label for="category-select" class="block text-sm font-medium text-gray-700 mb-1">หมวดหมู่</label>
+                        <select id="category-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="all">ทั้งหมด</option>
+                            <option value="Gadgets">Gadgets</option>
+                            <option value="Accessories">Accessories</option>
+                            <option value="Audio">Audio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- พื้นที่แสดงรายการสินค้า -->
+                <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- รายการสินค้าจะถูกเรนเดอร์ด้วย JavaScript -->
+                </div>
+            </div>
+
+            <!-- ส่วนตะกร้าสินค้าและการชำระเงิน (Cart & Checkout) -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit space-y-6">
+                <h2 class="text-xl font-bold text-gray-800 border-b pb-3">ตะกร้าสินค้าของคุณ</h2>
+                
+                <!-- รายการในตะกร้า -->
+                <div id="cart-list" class="space-y-4 max-h-72 overflow-y-auto pr-1">
+                    <p class="text-gray-500 text-center py-4">ตะกร้าสินค้าว่างเปล่า</p>
+                </div>
+
+                <!-- สรุปยอดเงิน -->
+                <div class="border-t pt-4 space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">ยอดรวมสินค้า (Subtotal):</span>
+                        <span><span id="subtotal-val">0.00</span> บาท</span>
+                    </div>
+                    <div class="flex justify-between text-green-600">
+                        <span class="text-gray-600">ส่วนลด (Discount):</span>
+                        <span>-<span id="discount-val">0.00</span> บาท</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">ภาษีมูลค่าเพิ่ม (VAT 7%):</span>
+                        <span><span id="tax-val">0.00</span> บาท</span>
+                    </div>
+                    <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2">
+                        <span>ยอดสุทธิ (Grand Total):</span>
+                        <span><span id="grand-total-val">0.00</span> บาท</span>
+                    </div>
+                </div>
+
+                <!-- ข้อมูลลูกค้าและการสั่งซื้อ -->
+                <div class="space-y-4 pt-2 border-t">
+                    <div>
+                        <label for="customer-input" class="block text-sm font-medium text-gray-700 mb-1">ชื่อ - ที่อยู่สำหรับจัดส่ง</label>
+                        <textarea id="customer-input" rows="3" placeholder="กรอกชื่อ และที่อยู่ของคุณที่นี่..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"></textarea>
+                    </div>
+                    <button id="checkout-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors cursor-pointer">
+                        ยืนยันการสั่งซื้อ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Module 1: Catalog Data
+        const products = [
+            { id: 1, name: "Wireless Mouse", category: "Accessories", price: 400, image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=400&auto=format&fit=crop&q=60" },
+            { id: 2, name: "USB-C Hub", category: "Accessories", price: 600, image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=400&auto=format&fit=crop&q=60" },
+            { id: 3, name: "Bluetooth Speaker", category: "Audio", price: 1200, image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&auto=format&fit=crop&q=60" },
+            { id: 4, name: "Noise-Canceling Earbuds", category: "Audio", price: 1500, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&auto=format&fit=crop&q=60" },
+            { id: 5, name: "Mechanical Keyboard", category: "Gadgets", price: 2200, image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&auto=format&fit=crop&q=60" },
+            { id: 6, name: "Smart Watch Pro", category: "Gadgets", price: 3000, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=60" }
+        ];
+
+        let cart = [];
+
+        // Load cart state from localStorage
+        function loadCartState() {
+            const savedCart = localStorage.getItem("app_cart_state");
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                } catch (e) {
+                    cart = [];
+                }
+            }
+        }
+
+        // Save cart state to localStorage
+        function saveCartState() {
+            localStorage.setItem("app_cart_state", JSON.stringify(cart));
+        }
+
+        // Module 2: Filter & Search Logic
+        function renderCatalog(items) {
+            const catalogGrid = document.getElementById("catalog-grid");
+            catalogGrid.innerHTML = "";
+
+            if (items.length === 0) {
+                catalogGrid.innerHTML = `<p class="col-span-2 text-center text-gray-500 py-8">ไม่พบสินค้าที่คุณค้นหา</p>`;
+                return;
+            }
+
+            items.forEach(product => {
+                const card = document.createElement("div");
+                card.className = "catalog-item bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-40 object-cover rounded-lg mb-3">
+                        <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full">${product.category}</span>
+                        <h3 class="font-bold text-gray-800 mt-2">${product.name}</h3>
+                        <p class="text-blue-600 font-semibold mt-1">${product.price.toFixed(2)} บาท</p>
+                    </div>
+                    <button data-id="${product.id}" class="add-btn mt-4 w-full bg-gray-900 hover:bg-blue-600 text-white py-2 rounded-lg text-sm transition-colors cursor-pointer">
+                        เพิ่มลงตะกร้า
+                    </button>
+                `;
+                catalogGrid.appendChild(card);
+            });
+
+            // Bind add-btn events
+            document.querySelectorAll(".add-btn").forEach(button => {
+                button.addEventListener("click", (e) => {
+                    const productId = parseInt(e.target.getAttribute("data-id"));
+                    addToCart(productId);
+                });
+            });
+        }
+
+        function filterProducts() {
+            const keyword = document.getElementById("search-input").value.toLowerCase().trim();
+            const selectedCategory = document.getElementById("category-select").value;
+
+            const filtered = products.filter(product => {
+                const matchesKeyword = product.name.toLowerCase().includes(keyword);
+                const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+                return matchesKeyword && matchesCategory;
+            });
+
+            renderCatalog(filtered);
+        }
+
+        // Module 3: Cart Mutation Logic
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item.id === productId);
+            if (existingItem) {
+                existingItem.qty += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    qty: 1
+                });
+            }
+
+            saveAndRefresh();
+        }
+
+        function updateQuantity(productId, change) {
+            const itemIndex = cart.findIndex(item => item.id === productId);
+            if (itemIndex > -1) {
+                cart[itemIndex].qty += change;
+                if (cart[itemIndex].qty <= 0) {
+                    cart.splice(itemIndex, 1);
+                }
+            }
+            saveAndRefresh();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            saveAndRefresh();
+        }
+
+        function saveAndRefresh() {
+            saveCartState();
+            renderCart();
+            calculateFinancials();
+        }
+
+        function renderCart() {
+            const cartList = document.getElementById("cart-list");
+            cartList.innerHTML = "";
+
+            if (cart.length === 0) {
+                cartList.innerHTML = `<p class="text-gray-500 text-center py-4">ตะกร้าสินค้าว่างเปล่า</p>`;
+                return;
+            }
+
+            cart.forEach(item => {
+                const cartItem = document.createElement("div");
+                cartItem.className = "flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-100 text-sm";
+                cartItem.innerHTML = `
+                    <div class="flex-1 pr-2">
+                        <h4 class="font-semibold text-gray-800">${item.name}</h4>
+                        <p class="text-gray-500">${item.price.toFixed(2)} บาท</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button data-id="${item.id}" class="qty-dec w-6 h-6 bg-white border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100 cursor-pointer">-</button>
+                        <span class="w-6 text-center font-medium">${item.qty}</span>
+                        <button data-id="${item.id}" class="qty-inc w-6 h-6 bg-white border border-gray-300 rounded flex items-center justify-center hover:bg-gray-100 cursor-pointer">+</button>
+                        <button data-id="${item.id}" class="remove-btn text-red-500 hover:text-red-700 ml-2 font-bold px-1 cursor-pointer">&times;</button>
+                    </div>
+                `;
+                cartList.appendChild(cartItem);
+            });
+
+            // Bind Cart Event Listeners
+            document.querySelectorAll(".qty-inc").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    updateQuantity(parseInt(e.target.getAttribute("data-id")), 1);
+                });
+            });
+
+            document.querySelectorAll(".qty-dec").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    updateQuantity(parseInt(e.target.getAttribute("data-id")), -1);
+                });
+            });
+
+            document.querySelectorAll(".remove-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    removeFromCart(parseInt(e.target.getAttribute("data-id")));
+                });
+            });
+        }
+
+        // Module 4: Financial Formula
+        function calculateFinancials() {
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let discount = subtotal >= 2000 ? subtotal * 0.15 : 0.00;
+            let tax = (subtotal - discount) * 0.07;
+            let grandTotal = (subtotal - discount) + tax;
+
+            document.getElementById("subtotal-val").textContent = subtotal.toFixed(2);
+            document.getElementById("discount-val").textContent = discount.toFixed(2);
+            document.getElementById("tax-val").textContent = tax.toFixed(2);
+            document.getElementById("grand-total-val").textContent = grandTotal.toFixed(2);
+        }
+
+        // Module 5: Persistence & Validation
+        document.getElementById("checkout-btn").addEventListener("click", () => {
+            const customerInput = document.getElementById("customer-input").value.trim();
+
+            if (cart.length === 0) {
+                alert("กรุณาเพิ่มสินค้าลงในตะกร้าอย่างน้อย 1 ชิ้นก่อนทำการสั่งซื้อ");
+                return;
+            }
+
+            if (customerInput === "") {
+                alert("กรุณากรอกชื่อและที่อยู่สำหรับจัดส่งสินค้า");
+                return;
+            }
+
+            const subtotal = parseFloat(document.getElementById("subtotal-val").textContent);
+            const discount = parseFloat(document.getElementById("discount-val").textContent);
+            const tax = parseFloat(document.getElementById("tax-val").textContent);
+            const grandTotal = parseFloat(document.getElementById("grand-total-val").textContent);
+
+            const orderData = {
+                customer: customerInput,
+                items: cart,
+                summary: {
+                    subtotal,
+                    discount,
+                    tax,
+                    grandTotal
+                },
+                timestamp: new Date().toISOString()
+            };
+
+            localStorage.setItem("app_last_order", JSON.stringify(orderData));
+            alert("สั่งซื้อสินค้าสำเร็จ! บันทึกข้อมูลการสั่งซื้อเรียบร้อยแล้ว");
+
+            // Clear cart after successful checkout
+            cart = [];
+            saveAndRefresh();
+            document.getElementById("customer-input").value = "";
+        });
+
+        // Event Listeners for Search & Filter
+        document.getElementById("search-input").addEventListener("input", filterProducts);
+        document.getElementById("category-select").addEventListener("change", filterProducts);
+
+        // Initial Page Load
+        window.addEventListener("DOMContentLoaded", () => {
+            loadCartState();
+            renderCatalog(products);
+            renderCart();
+            calculateFinancials();
+        });
+    </script>
+</body>
+</html>

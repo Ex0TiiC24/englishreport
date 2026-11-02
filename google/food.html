@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Store Management / POS System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm py-4 px-6 mb-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-indigo-600">TastyBites POS</h1>
+            <span class="text-sm text-gray-500">ระบบจัดการออเดอร์ร้านอาหาร</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-12">
+        
+        <!-- Left Section: Catalog & Filters (2 Columns on large screens) -->
+        <section class="lg:col-span-2 flex flex-col gap-4">
+            <!-- Search & Category Filter Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row gap-4">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="ค้นหาชื่อเมนูอาหาร..." 
+                    class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                <select 
+                    id="category-select" 
+                    class="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                    <option value="all">ทุกหมวดหมู่</option>
+                    <option value="Main">Main</option>
+                    <option value="Drink">Drink</option>
+                    <option value="Dessert">Dessert</option>
+                </select>
+            </div>
+
+            <!-- Catalog Grid -->
+            <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Menu items will be dynamically rendered here -->
+            </div>
+        </section>
+
+        <!-- Right Section: Cart & Checkout (1 Column) -->
+        <section class="bg-white p-5 rounded-xl shadow-sm flex flex-col justify-between">
+            <div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">รายการออเดอร์ปัจจุบัน</h2>
+                <div id="cart-list" class="flex flex-col gap-3 max-h-72 overflow-y-auto mb-4 pr-1">
+                    <!-- Cart items will be dynamically rendered here -->
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4 border-t pt-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1" for="customer-input">หมายเลขโต๊ะหรือชื่อลูกค้า</label>
+                    <input 
+                        type="text" 
+                        id="customer-input" 
+                        placeholder="เช่น โต๊ะ 5 หรือ คุณสมชาย" 
+                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                </div>
+
+                <div class="flex flex-col gap-2 text-sm bg-gray-50 p-3 rounded-lg border">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span><span id="subtotal-val">0.00</span> บาท</span>
+                    </div>
+                    <div class="flex justify-between text-green-600">
+                        <span class="text-gray-600">Discount:</span>
+                        <span>-<span id="discount-val">0.00</span> บาท</span>
+                    </div>
+                    <div class="flex justify-between text-gray-600">
+                        <span>Service Charge (10%):</span>
+                        <span><span id="tax-val">0.00</span> บาท</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg border-t pt-2 text-indigo-600">
+                        <span>Grand Total:</span>
+                        <span><span id="grand-total-val">0.00</span> บาท</span>
+                    </div>
+                </div>
+
+                <button 
+                    id="checkout-btn" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition duration-200 shadow-md"
+                >
+                    ยืนยันการสั่งอาหารเข้าครัว
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Module 1: Initial Menu Data
+        const menuItems = [
+            { id: 1, name: "Iced Matcha Latte", category: "Drink", price: 60 },
+            { id: 2, name: "Thai Milk Tea", category: "Drink", price: 70 },
+            { id: 3, name: "Mango Sticky Rice", category: "Dessert", price: 90 },
+            { id: 4, name: "Chocolate Lava Cake", category: "Dessert", price: 110 },
+            { id: 5, name: "Pad Kra Pao Beef", category: "Main", price: 120 },
+            { id: 6, name: "Tom Yum Goong", category: "Main", price: 180 }
+        ];
+
+        let cart = [];
+
+        // Load cart from localStorage ("app_cart_state")
+        const savedCart = localStorage.getItem('app_cart_state');
+        if (savedCart) {
+            try {
+                cart = JSON.parse(savedCart);
+            } catch (e) {
+                cart = [];
+            }
+        }
+
+        // DOM Elements
+        const searchInput = document.getElementById('search-input');
+        const categorySelect = document.getElementById('category-select');
+        const catalogGrid = document.getElementById('catalog-grid');
+        const cartList = document.getElementById('cart-list');
+        const subtotalVal = document.getElementById('subtotal-val');
+        const discountVal = document.getElementById('discount-val');
+        const taxVal = document.getElementById('tax-val');
+        const grandTotalVal = document.getElementById('grand-total-val');
+        const customerInput = document.getElementById('customer-input');
+        const checkoutBtn = document.getElementById('checkout-btn');
+
+        // Module 2: Filter & Search
+        function renderCatalog() {
+            const keyword = searchInput.value.toLowerCase().trim();
+            const selectedCategory = categorySelect.value;
+
+            const filtered = menuItems.filter(item => {
+                const matchName = item.name.toLowerCase().includes(keyword);
+                const matchCategory = selectedCategory === 'all' || item.category === selectedCategory;
+                return matchName && matchCategory;
+            });
+
+            catalogGrid.innerHTML = '';
+            if (filtered.length === 0) {
+                catalogGrid.innerHTML = '<p class="col-span-full text-center text-gray-500 py-10">ไม่พบเมนูอาหารที่ค้นหา</p>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'catalog-item bg-white p-4 rounded-xl shadow-sm border flex flex-col justify-between hover:shadow-md transition';
+                card.innerHTML = `
+                    <div>
+                        <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded-full">${item.category}</span>
+                        <h3 class="font-bold text-lg mt-3">${item.name}</h3>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <span class="text-indigo-600 font-bold text-lg">${item.price.toFixed(2)} ฿</span>
+                        <button data-id="${item.id}" class="add-btn bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">+ เพิ่ม</button>
+                    </div>
+                `;
+                catalogGrid.appendChild(card);
+            });
+        }
+
+        // Save Cart to Persistence
+        function persistCart() {
+            localStorage.setItem('app_cart_state', JSON.stringify(cart));
+        }
+
+        // Module 4: Financial Calculation Formula
+        function updateFinancials() {
+            let subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            let discount = subtotal >= 300 ? 40.00 : 0.00;
+            let tax = (subtotal - discount) * 0.10;
+            let grandTotal = (subtotal - discount) + tax;
+
+            subtotalVal.textContent = subtotal.toFixed(2);
+            discountVal.textContent = discount.toFixed(2);
+            taxVal.textContent = tax.toFixed(2);
+            grandTotalVal.textContent = grandTotal.toFixed(2);
+        }
+
+        // Module 3 & 4: Render Cart
+        function renderCart() {
+            cartList.innerHTML = '';
+            if (cart.length === 0) {
+                cartList.innerHTML = '<p class="text-center text-gray-400 py-8">ยังไม่มีรายการออเดอร์</p>';
+                updateFinancials();
+                persistCart();
+                return;
+            }
+
+            cart.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg border';
+                cartItem.innerHTML = `
+                    <div class="flex-1 pr-2">
+                        <h4 class="font-semibold text-sm">${item.name}</h4>
+                        <span class="text-xs text-gray-500">${item.price.toFixed(2)} ฿ x ${item.quantity}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button data-index="${index}" class="qty-dec bg-gray-200 hover:bg-gray-300 text-gray-700 w-6 h-6 rounded flex items-center justify-center font-bold text-xs">-</button>
+                        <span class="text-sm font-medium w-6 text-center">${item.quantity}</span>
+                        <button data-index="${index}" class="qty-inc bg-gray-200 hover:bg-gray-300 text-gray-700 w-6 h-6 rounded flex items-center justify-center font-bold text-xs">+</button>
+                        <button data-index="${index}" class="remove-btn text-red-500 hover:text-red-700 ml-2 font-bold text-lg px-1">×</button>
+                    </div>
+                `;
+                cartList.appendChild(cartItem);
+            });
+
+            updateFinancials();
+            persistCart();
+        }
+
+        // Event Listeners for Filtering & Searching
+        searchInput.addEventListener('input', renderCatalog);
+        categorySelect.addEventListener('change', renderCatalog);
+
+        // Event Listener for Adding to Cart
+        catalogGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.add-btn');
+            if (!btn) return;
+            const id = Number(btn.dataset.id);
+            const product = menuItems.find(p => p.id === id);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            renderCart();
+        });
+
+        // Event Listener for Cart Mutations (Qty Inc/Dec, Remove)
+        cartList.addEventListener('click', (e) => {
+            const index = Number(e.target.dataset.index);
+            if (isNaN(index)) return;
+
+            if (e.target.classList.contains('qty-inc')) {
+                cart[index].quantity += 1;
+            } else if (e.target.classList.contains('qty-dec')) {
+                cart[index].quantity -= 1;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+            } else if (e.target.classList.contains('remove-btn')) {
+                cart.splice(index, 1);
+            }
+            renderCart();
+        });
+
+        // Module 5: Validation & Checkout Persistence
+        checkoutBtn.addEventListener('click', () => {
+            const customerName = customerInput.value.trim();
+
+            if (cart.length === 0) {
+                alert('กรุณาเลือกรายการอาหารอย่างน้อย 1 รายการ');
+                return;
+            }
+
+            if (!customerName) {
+                alert('กรุณากรอกหมายเลขโต๊ะหรือชื่อลูกค้า');
+                customerInput.focus();
+                return;
+            }
+
+            const orderData = {
+                customer: customerName,
+                items: cart,
+                subtotal: subtotalVal.textContent,
+                discount: discountVal.textContent,
+                tax: taxVal.textContent,
+                grandTotal: grandTotalVal.textContent,
+                timestamp: new Date().toISOString()
+            };
+
+            // Save to localStorage under "app_last_order"
+            localStorage.setItem('app_last_order', JSON.stringify(orderData));
+            
+            alert('ยืนยันออเดอร์และส่งเข้าครัวเรียบร้อยแล้ว!');
+
+            // Clear cart & input after successful checkout
+            cart = [];
+            customerInput.value = '';
+            renderCart();
+        });
+
+        // Initial Initialization
+        renderCatalog();
+        renderCart();
+    </script>
+</body>
+</html>
