@@ -382,6 +382,15 @@ def generate_markdown_report(results, output_md_path="VERIFICATION_REPORT.md"):
         native_cell = " / ".join(native_marks)
 
         md.append(f"| {cp_code} | {cp_module} | {cp_desc} | {cp_weight} | {aipass_cell} | {native_cell} |")
+    md.append("\n")
+
+    # Blank Checklist Table Template matching prompt
+    md.append("## 4. Blank 20-Point Manual Verification Checklist Template\n")
+    md.append("Use this blank template table in your report's Methodology or Appendix for manual walkthrough scoring.\n")
+    md.append("| Code | Module | Verification Checkpoint Description | Weight | AiPASS (ecom / book / food) | Native (ecom / book / food) |")
+    md.append("|---|---|---|---|---|---|")
+    for cp_code, cp_module, cp_desc, cp_weight in CHECKPOINTS_SPEC:
+        md.append(f"| {cp_code} | {cp_module} | {cp_desc} | {cp_weight} | [ ] / [ ] / [ ] | [ ] / [ ] / [ ] |")
 
     # Console errors or warnings section if any
     has_errors = any(len(r.get("Runtime_Error_Msgs", [])) > 0 for r in results)
